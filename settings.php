@@ -37,19 +37,7 @@ if ($ADMIN->fulltree) {
         'div' => get_string('divtag', 'filter_embedrc')
     ];
 
-    $cachelifespan = [
-        '0' => get_string('cachelifespan_disabled', 'filter_embedrc'),
-        '1' => get_string('cachelifespan_daily', 'filter_embedrc'),
-        '2' => get_string('cachelifespan_weekly', 'filter_embedrc')
-    ];
-
     $config = get_config('filter_embedrc');
-    $item = new admin_setting_configselect(
-            'filter_embedrc/cachelifespan',
-            get_string('cachelifespan', 'filter_embedrc'),
-            get_string('cachelifespan_desc', 'filter_embedrc'), '1', $cachelifespan
-    );
-    $settings->add($item);
 
     $item = new admin_setting_configselect(
             'filter_embedrc/targettag',
@@ -86,4 +74,5 @@ if ($ADMIN->fulltree) {
         );
         $settings->add($item);
     }
+
 }

@@ -128,18 +128,28 @@ class oembed {
      * @throws \moodle_exception
      */
     protected function set_providers() {
+        global $CFG;
+
         $config = get_config('filter_embedrc');
-        $providers = $this->get_cached_providers();
-        if (empty($providers)) {
-            $providers = $this->download_providers();
+
+        // NOTE: useremoteproviderslist is a setting that hasn't been added to settings.php yet. When added it will
+        // default to 0 and will require enabling to make it acquire the remote providers list at http://oembed.com/.
+        if (empty($config->useremoteproviderslist)) {
+            $providers = null;
+        } else {
+            $providers = $this->get_cached_providers();
+            if (empty($providers)) {
+                $providers = $this->download_providers();
+            }
+            if (empty($providers)) {
+                // OK - we couldn't retrieve the providers via curl, let's hope we have something cached that's usable.
+                $providers = $this->get_cached_providers(true);
+            }
         }
+
         if (empty($providers)) {
-            // OK - we couldn't retrieve the providers via curl, let's hope we have something cached that's usable.
-            $providers = $this->get_cached_providers(true);
-        }
-        if (empty($providers)) {
-            // Couldn't get anything via curl or from cache, use local static copy.
-            $ret = file_get_contents(__DIR__.'/../../providers.json');
+            // Either remote providers not enabled or couldn't get anything via curl or from cache, use local static copy.
+            $ret = file_get_contents($CFG->dirroot.'/filter/embedrc/providers.json');
             $providers = json_decode($ret, true);
         }
 
