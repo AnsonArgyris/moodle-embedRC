@@ -29,18 +29,23 @@ define(['jquery'], function($) {
      */
     var ResponsiveContent = function() {
 
-        var self = this;
-
         /**
          * Apply to specific node / nodes or use selector.
          * @param {jQuery|null} nodes- jquery node / collection of nodes or null
          */
         this.apply = function(nodes) {
             if (!nodes){
-                nodes = $('.oembed_content > *:not(video):first-child, .oembed_card');
+                nodes = $('.oembed-content > *:not(video):first-child, .oembed-card');
             }
             // Apply aspect ratio to height for all nodes or single node.
             $(nodes).each(function() {
+
+                var parent = $(this).parent();
+                if (parent.hasClass('oembed-responsive')) {
+                    // Already processed.
+                    return;
+                }
+
                 var width,
                     height,
                     aspectratio;
@@ -80,23 +85,22 @@ define(['jquery'], function($) {
 
                 // Get width again.
                 width = parseInt(this.offsetWidth);
-                // Set height based on width and aspectratio.
-                var style = {height: (width * aspectratio) + 'px', width: '100%'};
+                // Set width;
+                var style = {width: '100%'};
                 $(this).css(style);
+
+                // Make sure parent has a padding element
+                if (!parent.find('.oembed-responsive-pad').length) {
+                    var aspectPerc = aspectratio * 100;
+                    var responsivePad = '<div class="oembed-responsive-pad" style="padding-top:' + aspectPerc + '%"></div>';
+                    parent.append(responsivePad);
+                }
+
+                // Add responsive class to parent element
+                parent.addClass('oembed-responsive');
             });
         };
 
-        // Listen for window resize for videos.
-        $(window).resize(function() {
-            var resizestamp = new Date().getTime();
-            (function(timestamp) {
-                window.setTimeout(function() {
-                    if (timestamp === resizestamp) {
-                        self.apply();
-                    }
-                }, 200); // wait 1/20th of a second before resizing
-            })(resizestamp);
-        });
     };
 
     return new ResponsiveContent();

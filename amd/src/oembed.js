@@ -27,11 +27,11 @@ define(['jquery', 'filter_embedrc/preloader', 'filter_embedrc/responsivecontent'
         return {
             init: function() {
                 /**
-                 * Apply a mutation observer to track oembed_content being dynamically added to the page.
+                 * Apply a mutation observer to track oembed-content being dynamically added to the page.
                  */
                 var responsiveContentOnInsert = function() {
                     /**
-                     * Does a node have the oembed_content class
+                     * Does a node have the oembed-content class
                      * @param {opbject} node (dom element)
                      * @returns {boolean}
                      */
@@ -39,7 +39,7 @@ define(['jquery', 'filter_embedrc/preloader', 'filter_embedrc/responsivecontent'
                         if (!node.className) {
                             return false;
                         }
-                        return $(node).is(".oembed_content,.oembed_card");
+                        return $(node).is(".oembed-content, .oembed-card-container");
                     };
 
                     var observer = new MutationObserver(function(mutations) {
@@ -47,7 +47,8 @@ define(['jquery', 'filter_embedrc/preloader', 'filter_embedrc/responsivecontent'
                             for (var n in mutation.addedNodes) {
                                 var node = mutation.addedNodes[n];
                                 if (hasOembedClass(node)) {
-                                    responsiveContent.apply();
+                                    // Only apply responsive content to the newly added node for efficiency.
+                                    responsiveContent.apply($(node).find('> *:not(video):first-child, .oembed-card'));
                                 }
                             }
                         });

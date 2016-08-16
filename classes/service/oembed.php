@@ -314,7 +314,7 @@ class oembed {
             $embed = str_replace('?feature=oembed', '?feature=oembed'.htmlspecialchars($params), $embed);
         }
 
-        $output = '<div class="oembed_content">' . $embed . '</div>'; // Wrapper for responsive processing.
+        $output = '<div class="oembed-content">' . $embed . '</div>'; // Wrapper for responsive processing.
         return $output;
     }
 
