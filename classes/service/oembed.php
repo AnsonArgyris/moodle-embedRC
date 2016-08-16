@@ -314,17 +314,80 @@ class oembed {
             $embed = str_replace('?feature=oembed', '?feature=oembed'.htmlspecialchars($params), $embed);
         }
 
-        $embedcode = $embed;
-        return $embedcode;
+        $output = '<div class="oembed_content">' . $embed . '</div>'; // Wrapper for responsive processing.
+        return $output;
     }
 
     /**
-     * Filter text - convert links into oembed code.
+     * Attempt to get aspect ratio from strings.
+     * @param string $width
+     * @param string $height
+     * @return float|int
+     */
+    protected function get_aspect_ratio($width, $height) {
+        $bothperc = strpos($height,'%') !== false && strpos($width, '%') !== false;
+        $neitherperc = strpos($height,'%') === false && strpos($width, '%') === false;
+        // If both height and width use percentages or both don't then we can calculate an aspect ratio.
+        if ($bothperc || $neitherperc) {
+            // Calculate aspect ratio.
+            $aspectratio = intval($height) / intval($width);
+        } else {
+            $aspectratio = 0;
+        }
+        return $aspectratio;
+    }
+
+    /**
+     * Generate preloader html.
+     * @param array $jsonarr
+     * @param string $params
+     * @return string
+     */
+    protected function oembed_getpreloadhtml(array $jsonarr, $params = '') {
+        global $PAGE;
+        /** @var \filter_embedrc_renderer $renderer */
+        $renderer = $PAGE->get_renderer('filter_embedrc');
+
+        // To surpress the loadHTML Warnings.
+        $dom = new \DOMDocument();
+        libxml_use_internal_errors(true);
+        $dom->loadHTML($jsonarr['html']);
+        libxml_use_internal_errors(false);
+
+        // Get aspect ratio of iframe or use width in json.
+        if ($dom->getElementsByTagName('iframe')->length > 0) {
+            $width = $dom->getElementsByTagName('iframe')->item(0)->getAttribute('width');
+            $height = $dom->getElementsByTagName('iframe')->item(0)->getAttribute('height');
+            $aspectratio = $this->get_aspect_ratio($width, $height);
+            if ($aspectratio === 0) {
+                if (isset($jsonarr['width']) && isset($jsonarr['height'])) {
+                    $width = $jsonarr['width'];
+                    $height = $jsonarr['height'];
+                    $aspectratio = $this->get_aspect_ratio($width, $height);
+                    if ($aspectratio === 0) {
+                        // Couldn't get a decent aspect ratio, let's go with 0.5625 (16:9)!
+                        $aspectratio = 0.5625;
+                    }
+                }
+            }
+
+            // This html is intentionally hardcoded and excluded from the mustache template as javascript relies on it.
+            $jsonarr['jshtml'] = ' data-aspect-ratio = "'.$aspectratio.'" ';
+        }
+
+        return $renderer->preload($this->oembed_gethtml($jsonarr, $params), $jsonarr);
+    }
+
+    /**
+     * Filter text - convert oembed divs and links into oembed code.
      *
      * @param string $text
      * @return string
      */
     public function html_output($text) {
+        $lazyload = get_config('filter_embedrc', 'lazyload');
+        $lazyload = $lazyload == 1 || $lazyload === false;
+
         $url2 = '&format=json';
         foreach ($this->sites as $site) {
             foreach ($site['regex'] as $regex) {
@@ -334,7 +397,12 @@ class oembed {
                     if (!$jsonret) {
                         return '';
                     }
-                    return $this->oembed_gethtml($jsonret);
+
+                    if ($lazyload) {
+                        return $this->oembed_getpreloadhtml($jsonret);
+                    } else {
+                        return $this->oembed_gethtml($jsonret);
+                    }
                 }
             }
         }

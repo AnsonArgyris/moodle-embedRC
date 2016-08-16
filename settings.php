@@ -75,4 +75,7 @@ if ($ADMIN->fulltree) {
         $settings->add($item);
     }
 
+    $item = new admin_setting_configcheckbox('filter_embedrc/lazyload', new lang_string('lazyload', 'filter_embedrc'), '', 1);
+    $settings->add($item);
+
 }

@@ -47,6 +47,14 @@ class filter_embedrc extends moodle_text_filter {
      * @return string String containing processed HTML.
      */
     public function filter($text, array $options = array()) {
+        global $PAGE;
+
+        static $initialised = false;
+
+        if (!$initialised) {
+            $PAGE->requires->js_call_amd('filter_embedrc/oembed', 'init');
+            $initialised = true;
+        }
 
         $targettag = get_config('filter_embedrc', 'targettag');
 
@@ -58,7 +66,7 @@ class filter_embedrc extends moodle_text_filter {
 
         $filtered = $text; // We need to return the original value if regex fails!
         if (get_config('filter_embedrc', 'targettag') == 'divtag') {
-            $search = '/(?<=(<div class="oembed">))(.*)(?=<\/div>)/';
+            $search = '/\<div\s[^\>]*data-oembed-href="(.*?)"(.*?)>(.*?)\<\/div\>/';
             $filtered = preg_replace_callback($search, function ($match) {
                 $instance = oembed::get_instance();
                 return $instance->html_output($match[0]);
@@ -66,7 +74,7 @@ class filter_embedrc extends moodle_text_filter {
         }
 
         if (get_config('filter_embedrc', 'targettag') == 'atag') {
-            $search = '/<a\s[^>]*href="(.*?)"(.*?)>(.*?)<\/a>/';
+            $search = '/\<a\s[^\>]*href="(.*?)"(.*?)>(.*?)\<\/a\>/';
             $filtered = preg_replace_callback($search, function ($match) {
                 $instance = oembed::get_instance();
                 $result = $instance->html_output($match[1]);

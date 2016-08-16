@@ -1,0 +1,43 @@
+.oembed_card {
+    position: relative;
+    min-height: 10em;
+    background-size: cover;
+    transition: all 0.4s ease-in-out;
+}
+.oembed_card_title {
+    color: #fff;
+    background-color: rgba(0,0,0,0.8);
+    padding: 0.5em 0.5em;
+}
+.oembed_content > *:not(video):first-child {
+    width: 100%;
+}
+
+/* Responsive video for HTML5 only */
+.oembed_content video {
+    width: 100% !important;
+    height: auto !important;
+}
+
+.btn.btn-link.oembed_card_play {
+    background-image: url([[pix:filter_embedrc|play]]);
+    background-repeat: no-repeat;
+    position: absolute;
+    top: calc(50% - 15%/2);
+    left: calc(50% - 15%/2);
+    width: 15%;
+    padding-top: 15%;
+    margin: 0;
+    background-position: 0;
+    opacity: 0.9;
+    transition: all 0.4s ease-in-out;
+    -webkit-filter: drop-shadow(1px 1px 1px #666);
+    filter: drop-shadow(1px 1px 1px #666);
+}
+
+.btn.btn-link.oembed_card_play:hover {
+    background-position: 0;
+    -webkit-filter: drop-shadow(0px 0px 0px #666);
+    filter: drop-shadow(0px 0px 0px #666);
+    opacity: 1;
+}
